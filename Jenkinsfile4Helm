@@ -1,0 +1,206 @@
+pipeline {
+
+    environment {
+        dockerImageName = "telegram-java-bot-api"
+        registryUrl = "https://registry.yourapi.ru"
+        registry = "registry.yourapi.ru/${dockerImageName}"
+        registryCredential = "ourHubPwd"
+        remoteHost = "5.189.146.63"
+        helmFilesDirectoryName = "helm/telegram-java-bot-api"
+        remoteWorkSpace = "/home/jenkins/workspace"
+        KUBECONFIG = "/home/jenkins/.kube/config"
+        namespace4upgrade = "${env.UPGRADE_NAMESPACE}"
+        dockerImageTag = "${env.DOCKER_IMAGE_TAG}"
+        portForDeploy = get_port()
+        portForNodePort = get_node_port()
+        profile4install = get_profile()
+        replicaCount = "${env.REPLICA_COUNT}"
+        volumeName = get_volume()
+        volumeClaimName = get_claim_volume()
+    }
+
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checkout'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Clean Build'
+                sh "mvn clean compile -P $profile4install -Denv.BUILD_NUMBER=${BUILD_NUMBER}"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing'
+                sh 'mvn test'
+            }
+        }
+
+        stage('SonarQube') {
+            environment {
+                scannerHome = tool 'telegram-java-bot-api'
+            }
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+                script {
+                    timeout(time: 1, unit: 'HOURS') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            echo "Status: ${qg.status}"
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        }
+                    }
+                }
+            }
+        }
+
+
+        stage('Package') {
+            steps {
+                echo 'Packaging'
+                sh "mvn package -P $profile4install -Denv.BUILD_NUMBER=${BUILD_NUMBER}"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo "Building image: $registry:$BUILD_NUMBER"
+                script {
+                    dockerImage = docker.build registry + ":$BUILD_NUMBER"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "Pushing image: $registry:$BUILD_NUMBER"
+                script {
+                    docker.withRegistry(registryUrl, registryCredential) {
+                        dockerImage.push()
+                    }
+
+                }
+            }
+        }
+
+        stage('Remove Unused Docker Image') {
+            steps {
+                echo "Removing image: $registry:$BUILD_NUMBER"
+                sh "docker rmi $registry:$BUILD_NUMBER"
+            }
+        }
+
+        stage('Copy Helm Files To Remote Host') {
+            steps {
+                sshagent(credentials: ['second']) {
+                    echo "Compressing helm files"
+                    sh "tar -czvf $dockerImageName-$BUILD_NUMBER-.tar.gz $helmFilesDirectoryName"
+                    echo "Copying compressed helm files $dockerImageName-$BUILD_NUMBER-.tar.gz to the remote server root@$remoteHost"
+                    sh "scp $dockerImageName-$BUILD_NUMBER-.tar.gz root@$remoteHost:$remoteWorkSpace"
+                    echo "Uncompressing remote helm files $dockerImageName-$BUILD_NUMBER-.tar.gz on remote host root@$remoteHost"
+                    sh "ssh root@$remoteHost mkdir $remoteWorkSpace/$dockerImageName-$BUILD_NUMBER"
+                    sh "ssh root@$remoteHost tar -xzvf $remoteWorkSpace/$dockerImageName-$BUILD_NUMBER-.tar.gz -C $remoteWorkSpace/$dockerImageName-$BUILD_NUMBER"
+                    echo "Deleting remote compressed helm files $dockerImageName-$BUILD_NUMBER-.tar.gz on remote host root@$remoteHost"
+                    sh "ssh root@$remoteHost rm -rf $remoteWorkSpace/$dockerImageName-$BUILD_NUMBER-.tar.gz"
+                }
+            }
+        }
+
+        stage('Helm Install') {
+            steps {
+                sshagent(credentials: ['second']) {
+                    echo "Removing remote pre-build image: $registry:${currentBuild.previousBuild.getNumber()}"
+                    sh "ssh root@$remoteHost docker rmi --force $registry:${currentBuild.previousBuild.getNumber()}"
+                    echo "Installing via Helm an image: $registry via helm files from directory $remoteWorkSpace/$dockerImageName-$BUILD_NUMBER"
+                    sh "ssh root@$remoteHost helm upgrade --install $dockerImageName-$namespace4upgrade $remoteWorkSpace/$dockerImageName-$BUILD_NUMBER/$helmFilesDirectoryName --namespace $namespace4upgrade --set image.appVersion=$dockerImageTag --set service.port=$portForDeploy --set replicaCount=$replicaCount --set database.nodePort=$portForNodePort --set env=$namespace4upgrade  --set volume.name=$volumeName --set volume.claim.name=$volumeClaimName"
+                }
+                sh 'printenv'
+            }
+        }
+
+        stage('Approval from Chuck Norris') {
+            steps {
+                chuckNorris()
+            }
+        }
+    }
+}
+
+def get_port() {
+    def stend = "${env.UPGRADE_NAMESPACE}"
+    switch (stend) {
+        case 'dev':
+            return '7499'
+        case 'master':
+            return '7500'
+        case 'prom':
+            return '7501'
+        default:
+            return '7499'
+    }
+}
+
+def get_node_port() {
+    def stend = "${env.UPGRADE_NAMESPACE}"
+    switch (stend) {
+        case 'dev':
+            return '30044'
+        case 'master':
+            return '30045'
+        case 'prom':
+            return '30046'
+        default:
+            return '30044'
+    }
+}
+
+def get_profile() {
+    def stend = "${env.UPGRADE_NAMESPACE}"
+    switch (stend) {
+        case 'dev':
+            return 'dev'
+        case 'master':
+            return 'master'
+        case 'prom':
+            return 'prod'
+        default:
+            return 'dev'
+    }
+}
+
+def get_volume() {
+    def stend = "${env.UPGRADE_NAMESPACE}"
+    switch (stend) {
+        case 'dev':
+            return 'file-repository-dev'
+        case 'master':
+            return 'file-repository-master'
+        case 'prom':
+            return 'file-repository-prom'
+        default:
+            return 'file-repository-dev'
+    }
+}
+
+def get_claim_volume() {
+    def stend = "${env.UPGRADE_NAMESPACE}"
+    switch (stend) {
+        case 'dev':
+            return 'yourapi-nfs-repository-claim-dev'
+        case 'master':
+            return 'yourapi-nfs-repository-claim-master'
+        case 'prom':
+            return 'yourapi-nfs-repository-claim-prom'
+        default:
+            return 'yourapi-nfs-repository-claim-dev'
+    }
+}

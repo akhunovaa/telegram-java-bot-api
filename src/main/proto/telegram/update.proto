@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package telegram;
+
+option java_package = "com.proto.telegram";
+option java_multiple_files = true;
+
+message GetUpdatesRequest {
+  string bot_token = 1;
+}
+
+message GetUpdatesResponse {
+  bool ok = 1;
+  Update update = 2;
+}
+
+message Update {
+  int64 id = 1;
+  string result = 2;
+}
+
+service GetUpdatesService {
+
+  rpc GetUpdates(GetUpdatesRequest) returns (stream GetUpdatesResponse) {};
+
+}

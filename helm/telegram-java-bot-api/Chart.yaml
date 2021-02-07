@@ -1,0 +1,9 @@
+apiVersion: v2
+name: telegram-java-bot-api
+description: Telegram клиент/сервер API который работает с скомпилированным Telegram клиентом и работы с ним через JNI
+
+type: application
+
+version: 0.1.0
+
+appVersion: 2

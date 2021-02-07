@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package telegram;
+
+option java_package = "com.proto.telegram";
+option java_multiple_files = true;
+
+message Message {
+  string text = 1;
+}
+
+message SendMessageRequest {
+  string bot_token = 1;
+  Message message = 2;
+}
+
+message SendMessageResponse {
+  bool status = 1;
+}
+
+service SendMessageService {
+
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse) {};
+
+}
