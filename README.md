@@ -76,6 +76,7 @@ If you want to avoid losing updates between logging out on the old server and la
 After the instance is closed, locate the bot's subdirectory in the working directory of the old server by the bot's user ID, move the subdirectory to the working directory of the new server
 and continue sending requests to the new server as usual.
 
+
 <a name="license"></a>
 ## License
 `Telegram Bot API JAVA` source code is licensed under the terms of the Boost Software License. See [LICENSE_1_0.txt](http://www.boost.org/LICENSE_1_0.txt) for more information.
