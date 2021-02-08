@@ -1,6 +1,6 @@
 # Telegram Bot API SERVER on JAVA
 
-The Telegram Bot API SERVER provides a gRPC `(gRPC Remote Procedure Calls is an open source remote procedure call (RPC) system initially developed at Google in 2015. It uses HTTP/2 for transport)` API for creating [Telegram Bots](https://core.telegram.org/bots).
+The Telegram Bot API SERVER provides a gRPC `(gRPC Remote Procedure Calls is an open source remote procedure call (RPC) system initially developed at Google in 2015. It uses HTTP/2 for transport)` API for [Telegram Bots](https://core.telegram.org/bots).
 
 
 ## IMPORTANT
