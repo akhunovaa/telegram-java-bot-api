@@ -20,13 +20,21 @@ This project is under development and and this is just the beginning :-)
 The simplest way to build and deploy `Telegram Bot API JAVA server` is to use [Kubernetes (K8s)](https://kubernetes.io/) with [HELM](https://helm.sh). 
 Two pipeline files are located in project `Jenkinsfile4Docker` and `Jenkinsfile4Helm`.
 
+<a name="Example"></a>
+## Example
+![Example](https://video.yourapi.ru/arch.jpeg)
+
+<a name="grpc"></a>
+## gRPC
+![gRPC instead of old HTTP](https://video.yourapi.ru/gRPC.jpeg)
+
 <a name="usage"></a>
 ## Usage
 
 Use `telegram-bot-api --help` to receive the list of all available options of the Telegram Bot API server.
 
-The only mandatory options are `--api-id` and `--api-hash`. You must obtain your own `api_id` and `api_hash`
-as described in https://core.telegram.org/api/obtaining_api_id and specify them using the `--api-id` and `--api-hash` options
+The only mandatory options are `telegram.client.api.id` and `telegram.client.api.hash`. You must obtain your own `api_id` and `api_hash`
+as described in https://core.telegram.org/api/obtaining_api_id and specify them using the `telegram.client.api.id` and `telegram.client.api.hash` options
 or the `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` environment variables.
 [App configuration](https://my.telegram.org/) and enter them in application properties file:
 
