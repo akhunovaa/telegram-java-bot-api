@@ -44,7 +44,7 @@ Enable Bot API features not available at `https://api.telegram.org`. In the loca
 * Download files without a size limit.
 * Upload files up to 2000 MB.
 * Upload files using their local path and [the file URI scheme](https://en.wikipedia.org/wiki/File_URI_scheme).
-* Use a very modern [gRPC](https://grpc.io/).
+* Use a very fast and modern [gRPC](https://grpc.io/) instead of old HTTP 1.1
 * Use any local IP address.
 * Use any port for the server.
 * Receive the absolute local path as a value of the *file_path* field without the need to download the file after a *getFile* request.
