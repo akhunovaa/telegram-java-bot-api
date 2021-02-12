@@ -22,11 +22,11 @@ Two pipeline files are located in project `Jenkinsfile4Docker` and `Jenkinsfile4
 
 <a name="Example"></a>
 ## Example
-![Example](https://video.yourapi.ru/arch.jpeg)
+![Example](https://drive.google.com/uc?id=13-ACSjaHrwemYnR36xrSGtNTElJsMw99)
 
 <a name="grpc"></a>
 ## gRPC
-![gRPC instead of old HTTP](https://video.yourapi.ru/gRPC.jpeg)
+![gRPC instead of old HTTP](https://drive.google.com/uc?id=1Ul85hlaKQetqzIFKVRunFn_Xc-v9q8of)
 
 <a name="usage"></a>
 ## Usage
